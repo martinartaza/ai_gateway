@@ -1,0 +1,65 @@
+services:
+  web:
+    build: .
+    container_name: ai_gateway_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    networks:
+      - traefik
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-gateway.rule=Host(`ai.sebastianartaza.com`)"
+      - "traefik.http.routers.ai-gateway.entrypoints=websecure"
+      - "traefik.http.routers.ai-gateway.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ai-gateway.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
+
+  mysql:
+    image: mysql:8
+    container_name: ai_gateway_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ai_gateway
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ollama:
+    image: ollama/ollama
+    container_name: ai_gateway_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+
+networks:
+  traefik:
+    external: true
+  backend:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  ollama_data:
