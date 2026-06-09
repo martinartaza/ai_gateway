@@ -24,7 +24,7 @@ async def chat(
 ) -> ChatResponse:
     result = None
     try:
-        result = await llm.generate(body.system, body.prompt)
+        result = await llm.generate(body.system, body.prompt, body.temperature, body.max_tokens)
         return ChatResponse(
             response=result["response"],
             tokens=result["prompt_tokens"] + result["completion_tokens"],

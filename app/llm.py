@@ -5,14 +5,22 @@ import httpx
 from app.config import settings
 
 
-async def generate(system: str, prompt: str) -> dict:
+async def generate(
+    system: str,
+    prompt: str,
+    temperature: float = 0.7,
+    max_tokens: int | None = None,
+) -> dict:
     payload = {
         "model": settings.llm_model_name,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
+        "temperature": temperature,
     }
+    if max_tokens is not None:
+        payload["max_tokens"] = max_tokens
     t0 = time.monotonic()
     async with httpx.AsyncClient(base_url=settings.llm_base_url, timeout=60.0) as client:
         response = await client.post("/v1/chat/completions", json=payload)
