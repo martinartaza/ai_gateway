@@ -40,18 +40,53 @@ curl -X POST https://ai.sebastianartaza.com/chat \
   -H "Authorization: Bearer TU_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "system": "Eres un asistente de e-commerce. Extrae el producto mencionado.",
-    "prompt": "Hola, tienen alimento para perro pequeño?"
+    "system": "Extrae SOLO el nombre del producto mencionado. Responde únicamente con el nombre del producto, sin explicaciones ni texto adicional. Si no hay producto, responde: ninguno.",
+    "prompt": "Hola, tienen alimento para perro pequeño?",
+    "temperature": 0.1,
+    "max_tokens": 20
   }'
 ```
 
 ```json
 {
-  "response": "El producto es \"alimento para perro pequeño\".",
-  "tokens": 60,
+  "response": "alimento para perro pequeño",
+  "tokens": 38,
   "duration_ms": 201
 }
 ```
+
+#### Parámetros del body
+
+| Parámetro | Tipo | Requerido | Default | Descripción |
+|-----------|------|-----------|---------|-------------|
+| `system` | string | Sí | — | Instrucción que define el comportamiento del modelo |
+| `prompt` | string | Sí | — | Mensaje del usuario |
+| `temperature` | float | No | `0.7` | Controla la creatividad de la respuesta (ver tabla abajo) |
+| `max_tokens` | int | No | sin límite | Cantidad máxima de tokens en la respuesta |
+
+#### temperature
+
+Controla qué tan determinista o creativo es el modelo. A menor valor, más enfocada y repetible es la respuesta. A mayor valor, más variada y creativa.
+
+| Valor | Comportamiento | Usar para |
+|-------|---------------|-----------|
+| `0.1` | Casi determinista | Extracción de entidades, clasificación |
+| `0.2 – 0.4` | Muy controlado | Respuestas estructuradas, JSON, listas |
+| `0.7` | Balanceado (default) | Asistente conversacional general |
+| `1.0 – 1.5` | Creativo | Generación de texto libre, ideas |
+
+#### max_tokens
+
+Limita la cantidad de tokens (palabras aproximadas) que puede generar el modelo en la respuesta. Un token equivale a ~0.75 palabras en español.
+
+Útil para tareas de extracción o clasificación donde la respuesta esperada es corta — evita que el modelo genere explicaciones innecesarias y reduce el tiempo de respuesta.
+
+| Tarea | `max_tokens` sugerido |
+|-------|-----------------------|
+| Extracción de una entidad | `10 – 30` |
+| Clasificación con etiqueta | `5 – 15` |
+| Respuesta conversacional corta | `100 – 200` |
+| Sin restricción | omitir el parámetro |
 
 ### GET /health
 
@@ -156,6 +191,7 @@ Los proyectos consumidores no necesitan ningún cambio al migrar entre modelos o
 | `LLM_MODEL_NAME` | Nombre del modelo en Ollama | `qwen2.5:0.5b` |
 | `DEFAULT_RATE_LIMIT` | Límite de requests por API key | `60/minute` |
 | `LOG_RETENTION_DAYS` | Días que se guardan los logs | `30` |
+| `LOG_LEVEL` | Log verbosity: `WARNING` \| `INFO` \| `DEBUG` | `WARNING` |
 | `METRICS_API_KEY` | Clave para acceder a `/metrics` | — |
 
 ## Desarrollo local
