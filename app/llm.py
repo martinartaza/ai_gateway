@@ -21,6 +21,7 @@ async def generate(
             {"role": "user", "content": prompt},
         ],
         "temperature": temperature,
+        "options": {"num_ctx": settings.llm_num_ctx},
     }
     if max_tokens is not None:
         payload["max_tokens"] = max_tokens
@@ -31,7 +32,7 @@ async def generate(
     )
     t0 = time.monotonic()
     try:
-        async with httpx.AsyncClient(base_url=settings.llm_base_url, timeout=60.0) as client:
+        async with httpx.AsyncClient(base_url=settings.llm_base_url, timeout=float(settings.llm_timeout)) as client:
             response = await client.post("/v1/chat/completions", json=payload)
             response.raise_for_status()
     except httpx.TimeoutException as e:
