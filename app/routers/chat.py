@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
@@ -10,6 +12,8 @@ from app.models import Project
 from app.models import Request as RequestLog
 from app.rate_limit import limiter
 from app.schemas import ChatRequest, ChatResponse
+
+logger = logging.getLogger("ai_gateway.chat")
 
 router = APIRouter()
 
@@ -30,7 +34,8 @@ async def chat(
             tokens=result["prompt_tokens"] + result["completion_tokens"],
             duration_ms=result["duration_ms"],
         )
-    except httpx.HTTPError:
+    except httpx.HTTPError as e:
+        logger.error("CHAT 502 | project=%s | %s: %s", project.name, type(e).__name__, e)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="LLM backend unavailable",

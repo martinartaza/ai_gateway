@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     default_rate_limit: str = "60/minute"
     log_retention_days: int = 30
     metrics_api_key: str = "change-me-in-production"
+    log_level: str = "WARNING"
 
 
 settings = Settings()
